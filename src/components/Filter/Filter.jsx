@@ -1,5 +1,6 @@
 import { StyledInput } from 'components/Form/Form.styled';
-import React from 'react'
+import React from 'react';
+import PropTypes from 'prop-types';
 
 function Filter({value, onChange}) {
   return (
@@ -8,6 +9,11 @@ function Filter({value, onChange}) {
       <StyledInput type="text" value={value} onChange={onChange} />
     </div>
   )
+}
+
+Filter.propTypes = {
+  value: PropTypes.string.isRequired,
+  onChange: PropTypes.func.isRequired,
 }
 
 export default Filter;

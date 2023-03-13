@@ -1,5 +1,5 @@
 import { GlobalStyle } from 'components/GlobalStyle';
-import React, { Component } from 'react';
+import React, { useState, useEffect } from 'react';
 import Form from './Form/Form';
 import { nanoid } from 'nanoid';
 import Contacts from './Contacts/Contacts';
@@ -9,76 +9,61 @@ import { StyledForm } from './Form/Form.styled';
 const testContacts = [{id: 'id-1', name: 'Rosie Simpson', number: '459-12-56'},
     {id: 'id-2', name: 'Hermione Kline', number: '443-89-12'},
     {id: 'id-3', name: 'Eden Clements', number: '645-17-79'},
-      { id: 'id-4', name: 'Annie Copeland', number: '227-91-26' },]
+  { id: 'id-4', name: 'Annie Copeland', number: '227-91-26' },]
 
-class App extends Component {
-  state = {
-    contacts: [],
-    filter: '',
-  }
+function App() {
+  const [contacts, setContacts] = useState(JSON.parse(localStorage.getItem('contacts')) ?? []);
+  const [filter, setFilter] = useState('');
 
-  componentDidMount() {
-    const contacts = localStorage.getItem('contacts');
-    const parsedContacts = JSON.parse(contacts);
-    if (parsedContacts) {
-      this.setState({contacts: parsedContacts});
-    }
-
+  useEffect(() => {
     console.log(`Contacts to test: `);
     console.log(testContacts);
+  }, []) 
+
+  useEffect(()=> {
+    localStorage.setItem('contacts', JSON.stringify(contacts));
+  }, [contacts])
+
+  const isInContacts = (name) => {
+    return contacts.some(contact => contact.name === name);
   }
 
-  componentDidUpdate(_, prevState) {
-    const prevcontacts = prevState.contacts;
-    const nextContacts = this.state.contacts;
-    if(prevcontacts !== nextContacts) {
-    localStorage.setItem('contacts', JSON.stringify(this.state.contacts));
-  }
-  }
-
-  isInContacts = (name) => {
-    return this.state.contacts.some(contact => contact.name === name);
-  }
-
-  addContact = (contact) => {
-    if (this.isInContacts(contact.name)) {
+  const addContact = (contact) => {
+    if (isInContacts(contact.name)) {
       alert(`${contact.name} is already in contacts`);
       return;
     }
     contact.id = nanoid();
-    this.setState(({ contacts }) => ({ contacts: [contact, ...contacts] }));
+    setContacts(contacts => ([contact, ...contacts]));
   };
 
-  deleteContact = (e) => {
+  const deleteContact = (e) => {
     const contactId = e.target.dataset.id;
-    this.setState(prevState => ({contacts: prevState.contacts.filter(contact => contact.id !== contactId)}))
+    setContacts(contacts => (contacts.filter(contact => contact.id !== contactId)))
   }
 
-  changeFilter = e => {
-    this.setState({ filter: e.currentTarget.value });
+  const changeFilter = e => {
+    setFilter(e.currentTarget.value);
   };
 
-  getVisibleContacts = () => {
-    const { filter, contacts } = this.state;
+  const getVisibleContacts = () => {
     const normalizedFilter = filter.toLocaleLowerCase();
 
     return contacts.filter(contact => contact.name.toLocaleLowerCase().includes(normalizedFilter));
   };
 
-  render() {
-    return (
-      <div>
+  return (
+    <div>
         <StyledForm>
         <h1>Phonebook</h1>
-          <Form onSubmit={this.addContact} />
+          <Form onSubmit={addContact} />
         </StyledForm>
         <h1>Contacts</h1>
-        <Filter value={this.state.filter} onChange={this.changeFilter} />
-        <Contacts contacts={this.getVisibleContacts()} onDeleteContact={ this.deleteContact } />
+        <Filter value={filter} onChange={changeFilter} />
+        <Contacts contacts={getVisibleContacts()} onDeleteContact={ deleteContact } />
       <GlobalStyle />
     </div>
-    )
-  }
+  )
 }
 
 export default App;
